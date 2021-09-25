@@ -1,0 +1,3 @@
+[submodule "src/deps/slingworks"]
+	path = src/deps/slingworks
+	url = https://github.com/JonSnowbd/slingworks
