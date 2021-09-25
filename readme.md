@@ -25,6 +25,12 @@ Controls:
 - Install [Slingworks](https://github.com/JonSnowbd/slingworks) dependencies
 - `zig build run`
 
+## Creating levels
+
+The main focus of Slingworks is providing a great editor for both developers and fans, and as such
+this example comes with the full editor accessible in the binary, to access this simply run the binary
+from your terminal with the editor argument like `./underburrow.exe editor`
+
 ### Something went wrong building?
 
 Make sure you initialized all submodules with `git submodule update --init --recursive`
