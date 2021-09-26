@@ -65,7 +65,7 @@ pub fn gameUpdate(self: *Self, scene: *sling.Scene) void {
         self.private.leniency = burrow.stat.leniency * 0.5;
         self.private.dir = .down;
     }
-    if (self.private.controlled and Key.r.pressed()) {
+    if (Key.r.pressed()) {
         self.restart(scene);
     }
     self.private.state.update(.{ .player = self, .scene = scene });
@@ -150,6 +150,7 @@ fn render(self: *Self) void {
 fn restart(self: *Self, scene: *sling.Scene) void {
     self.position = self.private.initialPosition;
     self.private.state = States.Machine.init(.{ .falling = .{} });
+    self.private.controlled = true;
     if(scene.is(TimeTrial)) |timer| {
         timer.restart();
     }

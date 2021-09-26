@@ -11,6 +11,8 @@ const SelectionMenu = @import("rooms/selector.zig");
 var ambience: sling.audio.Event = undefined;
 var volume: f32 = 0.5;
 
+var menuFont: usize = 0;
+
 pub fn main() anyerror!void {
     sling.addStaticInit(initialization);
 
@@ -41,6 +43,10 @@ fn initialization() void {
     ambience = sling.audio.makeEvent("event:/caveAmbience");
     ambience.setVolume(volume*0.2);
     ambience.play();
+
+    sling.settings.hideConsoleInRooms = true;
+
+    menuFont = sling.asset.ensure(sling.asset.Font, "content/font/ferrumbmp.fnt");
 }
 
 fn applyStyle() void {
