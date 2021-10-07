@@ -5,22 +5,24 @@ const Key = sling.input.Key;
 
 const Player = @import("entity/player.zig");
 const StaticBrush = @import("entity/staticBrush.zig");
+const TextEntity = @import("entity/text.zig");
+
 const TimeTrial = @import("scene/timeTrial.zig");
-const SelectionMenu = @import("rooms/selector.zig");
+
+const MainMenu = @import("rooms/mainMenu.zig");
 
 var ambience: sling.audio.Event = undefined;
 var volume: f32 = 0.5;
 
-var menuFont: usize = 0;
-
 pub fn main() anyerror!void {
     sling.addStaticInit(initialization);
 
+    sling.integrate(TextEntity);
     sling.integrate(Player);
     sling.integrate(StaticBrush);
     sling.integrate(TimeTrial);
-    sling.register.room(SelectionMenu.roomMethod, "Main Menu", SelectionMenu.roomEnter, null);
-    sling.register.scene(TimeTrial, .{ Player, StaticBrush });
+    sling.register.room(MainMenu.roomMethod, "Main Menu", MainMenu.roomEnter, null);
+    sling.register.scene(TimeTrial, .{ Player, StaticBrush, TextEntity });
 
     sling.run();
 }
@@ -31,22 +33,19 @@ fn initialization() void {
     sling.setWindowTitle("The Underburrow");
     sling.setWindowIcon("icon.png");
 
-    if (!sling.inEditor) {
-        sling.settings.initialScene = null;
-        sling.enterRoomString("Main Menu");
-    }
-
     // You want to do audio loading and such in init at the earliest
     sling.audio.loadBank("content/audio/Master.bank");
     sling.audio.loadBank("content/audio/Master.strings.bank");
 
-    ambience = sling.audio.makeEvent("event:/caveAmbience");
-    ambience.setVolume(volume*0.2);
-    ambience.play();
+    if (!sling.inEditor) {
+        sling.settings.initialScene = null;
+        sling.enterRoomString("Main Menu");
+        ambience = sling.audio.makeEvent("event:/caveAmbience");
+        ambience.setVolume(volume*0.2);
+        ambience.play();
+    }
 
     sling.settings.hideConsoleInRooms = true;
-
-    menuFont = sling.asset.ensure(sling.asset.Font, "content/font/ferrumbmp.fnt");
 }
 
 fn applyStyle() void {

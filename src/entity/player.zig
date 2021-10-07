@@ -11,9 +11,7 @@ const TimeTrial = @import("../scene/timeTrial.zig");
 
 // universal constants for players
 const depth = sling.Depth.init(0);
-pub const size = sling.math.rect(-10, -40, 20, 40);
-// How much the collider gets inset
-const skin: f32 = 1.0;
+pub const size = sling.math.rect(-8, -50, 16, 50);
 
 const privateState = struct {
     initialPosition: sling.math.Vec2 = .{},
@@ -29,8 +27,6 @@ const privateState = struct {
     stepEvent: sling.audio.Event = undefined,
 };
 
-/// Used for shoot maps, or other maps that depend on an initial value that
-/// isnt starting in free fall
 position: sling.math.Vec2 = .{},
 /// Private state hidden from slingworks as it is gameplay instance only logic.
 private: privateState = .{},
@@ -40,6 +36,7 @@ pub fn assetInit(self: *Self) void {
 }
 pub fn gameInit(self: *Self) void {
     sling.render.camera.setZoom(2.0);
+    sling.render.camera.setPosition(self.position);
     self.private.initialPosition = self.position;
     self.private.state = States.Machine.init(.{ .falling = .{} });
     self.private.stepEvent = sling.audio.makeEvent("event:/step");
@@ -95,7 +92,7 @@ pub fn gameUpdate(self: *Self, scene: *sling.Scene) void {
                 }
             }
         }
-        sling.render.camera.setPosition(self.position);
+        self.camera();
     }
     self.render();
 }
@@ -139,8 +136,8 @@ pub fn slingIntegration() void {
 
 // Helper methods:
 fn render(self: *Self) void {
-    var rect = size.moved(self.position);
-    var frame = sling.math.rect(20 * @intToFloat(f32, self.private.frame), 0, 20, 40);
+    var rect = sling.math.rect(-25,-70,50,70).moved(self.position);
+    var frame = sling.math.rect(50 * @intToFloat(f32, self.private.frame), 0, 50, 70);
     if (self.private.flipped) {
         rect.size.x = -rect.size.x;
     }
@@ -154,4 +151,28 @@ fn restart(self: *Self, scene: *sling.Scene) void {
     if(scene.is(TimeTrial)) |timer| {
         timer.restart();
     }
+    sling.render.camera.setPosition(self.position);
+}
+
+fn camera(self: *Self) void {
+    var lambda: f32 = 0.99;
+    const targ = switch(self.private.state.currentState) {
+        .falling => |fall| blk: {
+            var adjustment = fall.velocity.scale(1.5);
+            // Speed up catchup at >300 vel, and cap out the adjustment at >600 vel
+            if(adjustment.length() > 300) {
+                lambda = 0.999;
+                if(adjustment.length() > 600) {
+                    adjustment = adjustment.normalize().scale(600);
+                }
+            }
+            adjustment.y *= 0.05;
+            // Todo: Account for grace period on landing to use snapshotted velocity onto adjustment.
+            break :blk self.position.add(adjustment);
+        },
+        else => self.position,
+    };
+    const source = sling.render.camera.position;
+    const result = sling.math.Vec2.lerp(source, targ, 1.0 - std.math.exp(-lambda * sling.unscaledDt));
+    sling.render.camera.setPosition(result);
 }

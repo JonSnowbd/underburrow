@@ -5,6 +5,7 @@ const Key = sling.input.Key;
 const Self = @This();
 
 pub const Kind = enum {
+    none,
     collision,
     checkpoint,
     finish,
@@ -13,12 +14,20 @@ pub const Kind = enum {
 
 editorName: [64:0]u8 = std.mem.zeroes([64:0]u8),
 area: sling.math.Rect = sling.math.rect(0, 0, 200, 100),
+depth: sling.Depth = sling.Depth.init(0),
 color: sling.math.Vec4 = sling.math.Vec4.white,
 kind: Kind = .collision,
 decoration: ?[256:0]u8 = null,
 decorationTileSize: f32 = 16,
 editorDecorationPath: [256:0]u8 = std.mem.zeroes([256:0]u8),
 
+pub fn editorInit(self: *Self) void {
+    if(std.mem.lenZ(self.editorName) == 0) {
+        for("New Brush") |char, i| {
+            self.editorName[i] = char;
+        }
+    }
+}
 pub fn gameUpdate(self: *Self) void {
     self.render();
 }
@@ -77,6 +86,7 @@ pub fn extension(self: *Self) void {
 
 pub fn slingIntegration() void {
     var config = sling.configure(Self);
+    config.initMethod(.editorInit, .editorOnly);
     config.updateMethod(.gameUpdate, .gameOnly);
     config.updateMethod(.editorUpdate, .editorOnly);
     config.hide(.decoration);
@@ -97,6 +107,6 @@ fn render(self: *Self) void {
             .right = self.decorationTileSize,
             .bottom = self.decorationTileSize,
         };
-        sling.render.patch(.world, sling.Depth.init(1), patch, id, self.area, self.color);
+        sling.render.patch(.world, self.depth, patch, id, self.area, self.color);
     }
 }

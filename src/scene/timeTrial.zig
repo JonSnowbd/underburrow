@@ -22,26 +22,43 @@ pub fn gameDeinit(self: *Self) void {
     sling.timeScale = 1.0;
 }
 pub fn update(self: *Self) void {
+    var io = ig.igGetIO();
+    const title = sling.asset.ensure(sling.asset.Font, "content/font/title.fnt");
+    const small = sling.asset.ensure(sling.asset.Font, "content/font/regular.fnt");
+
     if (self.playing) {
         self.currentTime += sling.unscaledDt;
-        if(self.currentTime > 0.0) {
+        if(self.currentTime >= 0.0) {
             sling.timeScale = 1.0;
+        } else {
+            var int: i32 = @floatToInt(i32, std.math.fabs(std.math.floor(self.currentTime*3)));
+            var fmt = sling.util.tempFmt("{any}", .{int});
+            sling.render.text(.screen, sling.Depth.init(0), title, io.*.DisplaySize.scale(0.5), fmt, sling.math.Vec4.white, sling.math.Vec2{.x=0.5,.y=0.5});
+
+            var rect = sling.math.rect(
+                0,
+                (io.*.DisplaySize.y*0.5)-20,
+                io.*.DisplaySize.x,
+                40
+            );
+            sling.render.rectangle(.screen, sling.Depth.init(10.0), rect, sling.math.vec4(0.0, 0.0, 0.0, 0.6), null);
+
         }
     }
-    sling.render.text(.screen, sling.Depth.init(0), 0, .{.x=10,.y=10}, "Time Trial", sling.math.Vec4.white, null);
 
-    var io = ig.igGetIO();
-    sling.render.text(.screen, sling.Depth.init(0), 0, .{.x=io.*.DisplaySize.x-10,.y=10}, "A/D - Momentum Hops\nW - Height Vault\nS - Updraft", sling.math.Vec4.white, sling.math.vec2(1.0,0.0));
+    sling.render.text(.screen, sling.Depth.init(0), title, .{.x=10,.y=10}, "Time Trial", sling.math.Vec4.white, null);
+    sling.render.text(.screen, sling.Depth.init(0), small, .{.x=io.*.DisplaySize.x-10,.y=10}, "A/D - Momentum Hops\nW - Height Vault\nS - Updraft", sling.math.Vec4.white, sling.math.vec2(1.0,0.0));
 
     if(self.finished) {
         const blackout = sling.math.vec4(0.0, 0.0, 0.0, 0.3);
         sling.render.rectangle(.screen, sling.Depth.init(10.0), .{.size=io.*.DisplaySize}, blackout, null);
 
-        var timer = sling.util.tempFmt("Record!\n{d:.3}s", .{self.currentTime});
-        sling.render.text(.screen, sling.Depth.init(0), 0, io.*.DisplaySize.scale(0.5), timer, sling.math.Vec4.white, sling.math.Vec2{.x=0.5,.y=0.5});
+        var timer = sling.util.tempFmt("{d:.3}s", .{self.currentTime});
+        sling.render.text(.screen, sling.Depth.init(0), title, io.*.DisplaySize.scale(0.5), "Record!", sling.math.Vec4.white, sling.math.Vec2{.x=0.5,.y=0.5});
+        sling.render.text(.screen, sling.Depth.init(0), small, io.*.DisplaySize.scale(0.5).add(.{.y=50}), timer, sling.math.Vec4.white, sling.math.Vec2{.x=0.5,.y=0.5});
     } else {
         var timer = sling.util.tempFmt("{d:.2}", .{self.currentTime});
-        sling.render.text(.screen, sling.Depth.init(0), 0, .{.x=15,.y=41}, timer, sling.math.Vec4.white, null);
+        sling.render.text(.screen, sling.Depth.init(0), small, .{.x=20,.y=55}, timer, sling.math.Vec4.white, null);
     }
 }
 
@@ -64,7 +81,7 @@ pub fn slingIntegration() void {
     var config = sling.configure(Self);
     config.initMethod(.gameInit, .gameOnly);
     config.deinitMethod(.gameDeinit, .gameOnly);
-    config.hide(.currentTime);
-    config.hide(.playing);
+    config.ignore(.currentTime);
+    config.ignore(.playing);
     config.updateMethod(.update, .gameOnly);
 }

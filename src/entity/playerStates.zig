@@ -32,8 +32,10 @@ pub const StandState = struct {
 };
 pub const AirState = struct {
     velocity: sling.math.Vec2 = .{},
+    life: f32 = 0,
 
     pub fn update(self: *AirState, context: Context) ?Union {
+        self.life += sling.dt;
 
         // Slide jump overrides
         if (context.player.private.slideJumps > 0 and context.player.private.leniency > 0.0) {
@@ -62,7 +64,9 @@ pub const AirState = struct {
         // Sort out state
         var prop = self.velocity.scale(sling.dt);
         context.player.private.flipped = prop.x < 0.0;
-        context.player.private.frame = 3;
+
+        var lifeInt = @floatToInt(usize, self.life*12.5);
+        context.player.private.frame = std.math.clamp(lifeInt, 1, 3);
         if (context.scene.has(StaticBrush)) |brushes| {
             for (brushes) |brush| {
                 // Continue past brushes that arent collision, or cant possibly collide.
@@ -81,6 +85,7 @@ pub const AirState = struct {
                         if (result.normal.y == -1) {
                             if (context.player.private.leniency > 0.0) {
                                 self.jump(context);
+                                self.life = 0;
                             } else {
                                 context.player.private.slideJumps = 0;
                                 stateChange = Union{ .standing = .{ .snapshot = self.velocity, .window = burrow.stat.leniency * 0.5 } };

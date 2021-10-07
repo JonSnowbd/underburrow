@@ -28,11 +28,13 @@ pub fn roomMethod() void {
     ig.igSetNextWindowPos(io.*.DisplaySize.mul(.{ .x = 0.066, .y = 0.5 }), ig.ImGuiCond_Always, .{ .x = 0.066, .y = 0.5 });
 
     if (ig.igBegin("Main Menu", null, flags)) {
-        var size = ig.ImVec2{};
-        ig.igGetContentRegionAvail(&size);
-        if (ig.igButton("Play", .{ .x = size.x })) {
-            sling.scene = sling.Scene.initFromFilepath("content/levels/level1.json");
-            exiting = true;
+        switch(mode) {
+            .playMenu => {
+                exiting = play();
+            },
+            .mainMenu => {
+                exiting = mainM();
+            }
         }
     }
     ig.igEnd();
@@ -42,4 +44,20 @@ pub fn roomMethod() void {
     }
 }
 
-fn play() void {}
+
+fn play() bool {
+    ig.igText("Implement me :)");
+    return false;
+}
+fn mainM() bool {
+    var size = ig.ImVec2{};
+    ig.igGetContentRegionAvail(&size);
+    if (ig.igButton("Play", .{ .x = size.x })) {
+        mode = .playMenu;
+    }
+    if (ig.igButton("tutorial", .{ .x = size.x })) {
+        sling.scene = sling.Scene.initFromFilepath("content/tutorial.json");
+        return true;
+    }
+    return false;
+}
