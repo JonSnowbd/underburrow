@@ -22,7 +22,8 @@ Controls:
 
 ## Building
 
-- Install [Slingworks](https://github.com/JonSnowbd/slingworks) dependencies
+- `git submodule update --init --recursive`
+- Install [Slingworks](https://github.com/JonSnowbd/slingworks#dependencies) dependencies
 - `zig build run`
 
 ## Creating levels
